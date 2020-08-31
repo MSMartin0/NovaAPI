@@ -1,0 +1,5 @@
+{
+    "name": "pyramid",
+    "encrypt": ["text", "key"],
+    "decrypt": ["text", "key"]
+}

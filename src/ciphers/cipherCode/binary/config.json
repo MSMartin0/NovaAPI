@@ -1,0 +1,5 @@
+{
+    "name": "binary",
+    "encrypt": ["text"], 
+    "decrypt": ["binary"]
+}

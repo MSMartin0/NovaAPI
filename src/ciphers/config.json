@@ -1,0 +1,6 @@
+{
+    "name":"ciphers",
+    "basePath": "cipherCode",
+    "stdFileName": "source.js",
+    "validActions": ["encrypt","decrypt"]
+}
