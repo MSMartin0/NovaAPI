@@ -164,7 +164,6 @@ function getHandler(input)
                     if(input["color"] === "dark" || input["color"] === "light")
                     {
                         var filePath = `${config.basePath}/${input["cipherID"]}/icon${input["color"]}.png`
-                        console.log(filePath)
                         if(fs.existsSync(path.resolve(__dirname,filePath)))
                         {
                             content["content"] = path.resolve(__dirname,filePath)

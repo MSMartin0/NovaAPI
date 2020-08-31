@@ -28,7 +28,6 @@ router.route('/:cipherID/icon/:color')
             "color": req.params.color
         }
         var msgVals = ciphers.processInput(args)
-        console.log(msgVals)
         if(msgVals["status"]===200)
         {
             res.status(msgVals["status"]).sendFile(msgVals["content"])
