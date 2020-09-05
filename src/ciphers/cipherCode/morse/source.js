@@ -151,7 +151,7 @@ function processData(action, data)
 }
 function validateInput(action, data)
 {
-    const regExTest = new RegExp(/^[.-/ ]+$/)
+    const regExTest = new RegExp(/^[.\-/ ]+$/)
     if(action === "encrypt")
     {
         return data["text"].length !==0
