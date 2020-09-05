@@ -159,43 +159,51 @@ function getHandler(input)
         "content": "success",
         "status": 200
     }
-    if(input.hasOwnProperty("action") && input["action"].length !== 0 && config.validActions.includes(input["action"])) 
+    if(input.hasOwnProperty("action")&&input["action"].length !== 0) 
     {
-        if(input.hasOwnProperty("cipherID") && DependancyMap.has(input["cipherID"]))
+        if(config.validActions.includes(input["action"]))
         {
-            if(input["action"] === "icon")
+            if(input.hasOwnProperty("cipherID") && DependancyMap.has(input["cipherID"]))
             {
-                if(typeof(input["color"])!=="undefined")
+                if(input["action"] === "icon")
                 {
-                    if(input["color"] === "dark" || input["color"] === "light")
+                    if(typeof(input["color"])!=="undefined")
                     {
-                        var filePath = `${config.basePath}/${input["cipherID"]}/icon${input["color"]}.png`
-                        if(fs.existsSync(path.resolve(__dirname,filePath)))
+                        if(input["color"] === "dark" || input["color"] === "light")
                         {
-                            content["content"] = path.resolve(__dirname,filePath)
+                            var filePath = `${config.basePath}/${input["cipherID"]}/icon${input["color"]}.png`
+                            if(fs.existsSync(path.resolve(__dirname,filePath)))
+                            {
+                                content["content"] = path.resolve(__dirname,filePath)
+                            }
                         }
+                        else
+                        {
+                            content["content"] = "Unavailable color provided"
+                            content["status"] = 400
+                        }
+                            
                     }
                     else
                     {
-                        content["content"] = "Unavailable color provided"
+                        content["content"] = "No color provided"
                         content["status"] = 400
                     }
-                        
                 }
                 else
                 {
-                    content["content"] = "No color provided"
-                    content["status"] = 400
+                    content["content"] = DependancyMap.get(input["cipherID"]).config[input["action"]]
                 }
             }
             else
             {
-                content["content"] = DependancyMap.get(input["cipherID"]).config[input["action"]]
+                content["content"] = "Invalid cipher provided"
+                content["status"] = 400
             }
         }
         else
         {
-            content["content"] = "Invalid cipher provided"
+            content["content"] = "Invalid action provided"
             content["status"] = 400
         }
     }
