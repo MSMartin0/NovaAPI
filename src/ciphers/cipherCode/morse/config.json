@@ -1,0 +1,5 @@
+{
+    "name": "morse",
+    "encrypt": ["text"],
+    "decrypt": ["morse"]
+}

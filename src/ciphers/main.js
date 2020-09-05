@@ -36,6 +36,10 @@ function init() {
                         }
                         iter++
                     }
+                    if(typeof(tempDep.init)=== "function")
+                    {
+                        canAdd = tempDep.init()
+                    }
                 }
                 else
                 {
@@ -56,6 +60,8 @@ function init() {
             DependancyMap.set(folder, require(`${__dirname}/${config.basePath}/${folder}/${config.stdFileName}`))
         }
     })
+    console.log("Loaded in following dependancies:")
+    console.log(Array.from(DependancyMap.keys()))
 }
 function processInput(input) {
     var content = {
