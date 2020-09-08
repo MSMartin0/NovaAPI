@@ -15,7 +15,7 @@ app.get('/teapot', (req, res) =>
     res.status(418).send()
 );
 app.listen(PORT, () => {
-    info.modules.forEach(depName =>
+    fs.readdirSync(path.resolve(__dirname, info.assetPath)).forEach(depName =>
         {
             var srcpath = `${info.assetPath}/${depName}`
             var files = fs.readdirSync(path.resolve(__dirname, srcpath))
@@ -24,7 +24,8 @@ app.listen(PORT, () => {
                 var tempRoute = require(`${srcpath}/routes.js`)
                 if (typeof(tempDep.init) === "function"
                 &&typeof(tempDep.processInput) === "function"
-                &&typeof(tempRoute.router!=="undefined"))
+                &&typeof(tempRoute.router!=="undefined")
+                &&typeof(tempDep.name) !== "undefined")
                 {
                     dependancyMap.set(tempDep.name, tempDep)
                     app.use(`/${depName}`, tempRoute)
