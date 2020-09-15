@@ -44,7 +44,7 @@ router.route('/:cipherID/:action')
             "request": "POST",
             "cipherID": req.params.cipherID,
             "action": req.params.action,
-            "data": JSON.parse(JSON.stringify(req.body))
+            "data": req.body
         }
         var msgVals = ciphers.processInput(args)
         res.status(msgVals["status"]).json(msgVals["content"])
