@@ -108,7 +108,11 @@ function process(input)
     {
         for(var x = 0; x<width; x += 1)
         {
-            const rgba = colorMap.get(pixelArr[(y*width)+x])
+            var rgba = colorMap.get(pixelArr[(y*width)+x])
+            if(typeof(rgba) === "undefined")
+            {
+                rgba = colorMap.get("a0")
+            }
             var fillString = "rgba("
             rgba.forEach(val =>{
                 fillString += `${val},`
