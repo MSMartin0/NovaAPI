@@ -1,136 +1,192 @@
-/*
-a0: (0,0,0,0) [transparent]
-t: BLACK
-c: CYAN
-d: DARK_GRAY
-z: GRAY
-g: GREEN
-l: LIGHT_GRAY
-m: MAGENTA
-o: ORANGE
-p: PINK
-r: RED
-w: WHITE
-y: YELLOW
-b: BLUE
-
-{
-    pixelSize:
-    widthInPixels:
-    heightInPixels:
-    pixelString:
-}
-*/
 const fs = require('fs')
 const path = require('path')
 const { createCanvas, loadImage } = require('canvas')
-const colorMap = new Map()
+const canvasTools = require("./canvasTools.js")
 const dimRestr = {
     "width": 1000,
     "height": 1000
 }
-function initColorMap()
-{
-    colorMap.set("a0", [0,0,0,0])
-    colorMap.set("t", [0,0,0,1])
-    colorMap.set("c", [0,255,255,1])
-    colorMap.set("d", [60,60,60,1])
-    colorMap.set("z", [120,120,120,1])
-    colorMap.set("g", [0,255,0,1])
-    colorMap.set("l", [180,180,180,1])
-    colorMap.set("m", [255,20,150,1])
-    colorMap.set("o", [255,125,80,1])
-    colorMap.set("p", [255,150,200,1])
-    colorMap.set("r", [255,0,0,1])
-    colorMap.set("w", [255,255,255,1])
-    colorMap.set("y", [255,255,0,1])
-    colorMap.set("b", [0,0,255,1])
+class ColorPair{
+    constructor(abrv, fullname, rgbaArr)
+    {
+        this.code = abrv
+        this.name = fullname
+        this.rgba = rgbaArr
+    }
+}
+const colorMap = new Map([
+    ["a0", new ColorPair("a0", "Transparent", [0,0,0,0])],
+    ["b", new ColorPair("b", "Black",[0,0,0,1])],
+    ["c", new ColorPair("c", "Cyan", [0,255,255,1])],
+    ["dg", new ColorPair("dg", "Dark Gray", [60,60,60,1])],
+    ["g", new ColorPair("g", "Gray", [120,120,120,1])],
+    ["gr", new ColorPair("gr", "Green", [0,255,0,1])],
+    ["lg", new ColorPair("lg", "Light Gray", [180,180,180,1])],
+    ["m", new ColorPair("m", "Magenta", [255,20,150,1])],
+    ["o", new ColorPair("o", "Orange", [255,125,80,1])],
+    ["pi", new ColorPair("pi", "Pink", [255,150,200,1])],
+    ["r", new ColorPair("r", "Red", [255,0,0,1])],
+    ["w", new ColorPair("w", "White", [255,255,255,1])],
+    ["y", new ColorPair("y", "Yellow", [255,255,0,1])],
+    ["bl", new ColorPair("bl", "Blue", [0,0,255,1])]
+])
+function colorList(){
+    return colorMap.values()
 }
 function validInput(input)
 {
-    var validArr = [false, false, false, false]
-    if(typeof(input["pixelSize"]) === "number" && input["pixelSize"]%1 === 0)
-    {
-        if(input["pixelSize"] > 0)
+    const reqFields = ["pixelSize", "widthInPixels", "heightInPixels", "pixelString"]
+    var missingField = false
+    var missingFieldList = ""
+    reqFields.forEach(req => {
+        if(typeof(input[req]) === "undefined")
         {
-            validArr[0] = true
+            missingField = true
+            missingFieldList += req +", "
+        }
+    })
+    if(missingField)
+    {
+        missingFieldList = missingFieldList.substr(0, missingFieldList.length - 2)
+        return `Missing data fields ${missingFieldList}`
+    }
+    if(typeof(input["pixelSize"]) === "number")
+    {
+        if(input["pixelSize"]%1 === 0)
+        {
+            if(input["pixelSize"] <= 0)
+            {
+                return "PixelSize is less than or equal to 0. Input a number greater than 0"
+            }
         }
         else
         {
-            return false
+            return "PixelSize argument is a float. Enter in an integer"
         }
     }
     else
     {
-        return false
+        return "PixelSize argument is not a number. Enter in an integer"
     }
-    if(typeof(input["widthInPixels"]) === "number" && input["widthInPixels"]%1 === 0)
+    if(typeof(input["widthInPixels"]) === "number")
     {
-        if(input["widthInPixels"] > 0)
+        if(input["widthInPixels"]%1 === 0)
         {
-            if(input["widthInPixels"]*input["pixelSize"]<=dimRestr["width"])
+            if(input["widthInPixels"] > 0)
             {
-                validArr[1] = true
+                if(input["widthInPixels"]*input["pixelSize"]>dimRestr["width"])
+                {
+                    return `widthInPixels value is greater than the restriction. Keep this argument under ${dimRestr["width"]}`
+                }
+            }
+            else
+            {
+                return "widthInPixels is less than or equal to 0. Input a number greater than 0"
             }
         }
-    }
-    if(typeof(input["heightInPixels"]) === "number" && input["heightInPixels"]%1 === 0)
-    {
-        if(input["heightInPixels"] > 0)
+        else
         {
-            if(input["heightInPixels"]*input["pixelSize"]<=dimRestr["height"])
+            return "widthInPixels argument is a float. Enter in an integer"
+        }
+    }
+    else
+    {
+        return "widthInPixels argument is not a number. Enter in an integer"
+    }
+    if(typeof(input["heightInPixels"]) === "number")
+    {
+        if(input["heightInPixels"]%1 === 0)
+        {
+            if(input["heightInPixels"] > 0)
             {
-                validArr[2] = true
+                if(input["heightInPixels"]*input["pixelSize"]>dimRestr["height"])
+                {
+                    return `heightInPixels value is greater than the restriction. Keep this argument under ${dimRestr["height"]}`
+                }
+            }
+            else
+            {
+                return "heightInPixels is less than or equal to 0. Input a number greater than 0"
             }
         }
-    }
-    if(typeof(input["pixelString"]) === "string" && input["pixelString"].length > 0)
-    {
-        if(input["pixelString"].split(" ").length == input["heightInPixels"] * input["widthInPixels"])
+        else
         {
-            validArr[3] = true
+            return "heightInPixels argument is a float. Enter in an integer"
         }
     }
-    return validArr.every(pass => {return pass})
+    else
+    {
+        return "heightInPixels argument is not a number. Enter in an integer"
+    }
+    if(typeof(input["pixelString"]) === "string")
+    {
+        if(input["pixelString"].length > 0)
+        {
+            const expectedPixels = input["heightInPixels"] * input["widthInPixels"]
+            const actualPixels = input["pixelString"].split(" ").length
+            if(actualPixels !== expectedPixels)
+            {
+                return `pixelString argument does not have enough pixel characters. ` + 
+                `Make sure there are ${expectedPixels} ` +
+                `pixels in the pixelString. Currently there are ${actualPixels}`
+            }
+        }
+        else
+        {
+            return "pixelString argument is empty. Add a value"
+        }
+    }
+    else
+    {
+        return "pixelString argument is not a string. Enter in a string argument"
+    }
+    return "valid"
 }
 function process(input)
 {
-    const imagePath = path.resolve(__dirname + '/image.png')
+    var check = validInput(input)
+    const imagePath = path.resolve(__dirname + '/pixel.png')
     const out = fs.createWriteStream(imagePath)
-    const width = input["widthInPixels"]
-    const height = input["heightInPixels"]
-    const pixelSize = input["pixelSize"]
-    const pixelArr = input["pixelString"].split(" ")
-    const canvas = createCanvas(width*pixelSize,height*pixelSize)
-    const ctx = canvas.getContext('2d')
-    const stream = canvas.createPNGStream()
-    for(var y = 0; y<height; y += 1)
+    if(check === "valid")
     {
-        for(var x = 0; x<width; x += 1)
+        const width = input["widthInPixels"]
+        const height = input["heightInPixels"]
+        const pixelSize = input["pixelSize"]
+        const pixelArr = input["pixelString"].split(" ")
+        const canvas = createCanvas(width*pixelSize,height*pixelSize)
+        const ctx = canvas.getContext('2d')
+        const stream = canvas.createPNGStream()
+        for(var y = 0; y<height; y += 1)
         {
-            var rgba = colorMap.get(pixelArr[(y*width)+x])
-            if(typeof(rgba) === "undefined")
+            for(var x = 0; x<width; x += 1)
             {
-                rgba = colorMap.get("a0")
+                var rgbaArr = colorMap.get(pixelArr[(y*width)+x])
+                if(typeof(rgbaArr) === "undefined")
+                {
+                    rgbaArr = colorMap.get("a0")
+                }
+                var fillString = "rgba("
+                rgbaArr.rgba.forEach(val =>{
+                    fillString += `${val},`
+                })
+                fillString = fillString.substring(0, fillString.length-1) + ")"
+                ctx.fillStyle = fillString
+                ctx.fillRect(x*pixelSize,y*pixelSize, pixelSize, pixelSize)
             }
-            var fillString = "rgba("
-            rgba.forEach(val =>{
-                fillString += `${val},`
-            })
-            fillString = fillString.substring(0, fillString.length-1) + ")"
-            ctx.fillStyle = fillString
-            ctx.fillRect(x*pixelSize,y*pixelSize, pixelSize, pixelSize)
         }
+        stream.pipe(out)
     }
-    stream.pipe(out)
     return new Promise((resolve, reject) => {
         out.on('finish', arg => {
             resolve(imagePath)
         })
+        if(check !== "valid")
+        {
+            reject(check)
+        }
     })
 }
 module.exports = {
     validInput,
-    process,
-    initColorMap
+    process
 }

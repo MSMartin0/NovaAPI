@@ -8,24 +8,33 @@ router.use(bodyParser.urlencoded({
     extended: true
 }));
 
-router.route('/pixelPrinter')
+router.route('/canvasTools/:tool')
     .post((req,res) =>
     {
         args = {
             "request": "POST",
-            "action": "pixelPrinter",
+            "action": req.params.tool.toLowerCase(),
             "data": req.body
         }
-        var returnVal = other.processInput(args).then(msgVals => {
-        if(msgVals["status"] == 200)
-        {
-            res.status(msgVals["status"]).sendFile(msgVals["content"], {}, () => {
-                fs.unlinkSync(msgVals["content"])
+        other.processInput(args).then(msgVals => {
+            res.status(msgVals.status).sendFile(msgVals.content, {}, () => {
+                fs.unlinkSync(msgVals.content)
             })
-        }
-        else
+        }).catch(err=>
         {
-            res.status(msgVals["status"]).json(msgVals["content"])
-        }})
+            res.status(err.status).json(err.content)
+        })
+    })
+    .get((req,res) => {
+        args = {
+            "request": "GET",
+            "action": req.params.tool.toLowerCase()
+        }
+        other.processInput(args).then(msgVals => {
+            res.status(msgVals.status).sendFile(msgVals.content)
+        }).catch(err=>
+        {
+            res.status(err.status).json(err.content)
+        })
     })
 module.exports = router

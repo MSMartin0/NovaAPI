@@ -1,9 +1,10 @@
 const name = `other`
 const fs = require('fs')
 const pixelPrinter = require('./pixelPrinter.js')
+const canvasTools = require('./canvasTools.js')
 function init()
 {
-    pixelPrinter.initColorMap()
+    
 }
 async function processInput(input)
 {
@@ -11,95 +12,113 @@ async function processInput(input)
         "content": "",
         "status": 200
     }
-    if(typeof(input["request"]) !== "undefined" && input["request"].length > 0)
+    if(typeof(input.request) !== "undefined" && input.request.length > 0)
     {
-        if(input["request"] === "POST")
+        if(input.request === "POST")
         {
-            if(typeof(input["action"]) !== "undefined" && input["action"].length > 0)
+            if(typeof(input.action) !== "undefined" && input.action.length > 0)
             {
-                if(input["action"] == "pixelPrinter")
+                if(input.action == "pixelprinter")
                 {
-                    if(typeof(input["data"]) !== "undefined")
+                    if(typeof(input.data) !== "undefined")
                     {
-                        const reqFields = ["pixelSize", "widthInPixels", "heightInPixels", "pixelString"]
-                        var missingField = false
-                        var missingFieldList = ""
-                        reqFields.forEach(req => {
-                            if(typeof(input["data"][req]) === "undefined")
-                            {
-                                missingField = true
-                                missingFieldList += req +", "
-                            }
+                        await pixelPrinter.process(input.data).then(result => {
+                            content.content = result
+                        }).catch(error =>{
+                            content.content = error
+                            content.status = 400
                         })
-                        if(missingField)
+                    }
+                    else
+                    {
+                        content.content = "No data provided"
+                        content.status = 400
+                    }
+                }
+                else if(input.action == "static")
+                {
+                    if(typeof(input.data) !== "undefined")
+                    {
+                        if(typeof(input.data.width)==="number"&&typeof(input.data.height)==="number")
                         {
-                            missingFieldList = missingFieldList.substr(0, missingFieldList.length - 2)
-                            content["content"] = `Missing data fields ${missingFieldList}`
-                            content["status"] = 400
-                        }
-                        else
-                        {
-                            if(pixelPrinter.validInput(input["data"]))
+                            if(input.data.width%1===0&&input.data.height%1===0)
                             {
-                                content["content"] = await pixelPrinter.process(input["data"])
+                                await canvasTools.generateNoise(input.data.width, input.data.height).then(result =>{
+                                    content.content = result
+                                }).catch(err=>{
+                                    content.content = err
+                                    content.status = 400
+                                })
                             }
                             else
                             {
-                                content["content"] = "Provided data is invalid"
-                                content["status"] = 400
+                                content.content = "Width or height are floats. Ensure both arguments are integers"
+                                content.status = 400
                             }
+                        }
+                        else
+                        {
+                            content.content = "Missing width or height. Ensure both arguments are present"
+                            content.status = 400
                         }
                     }
                     else
                     {
-                        content["content"] = "No data provided"
-                        content["status"] = 400
+                        content.content = "No data provided"
+                        content.status = 400
                     }
+
                 }
                 else
                 {
-                    content["content"] = "Action does not exist"
-                    content["status"] = 400
+                    content.content = "Action does not exist"
+                    content.status = 400
                 }
             }
             else
             {
-                content["content"] = "No action provided"
-                content["status"] = 400
+                content.content = "No action provided"
+                content.status = 400
             }
         }
-        else if(input["request"] === "GET")
+        else if(input.request === "GET")
         {
-            if(typeof(input["action"]) !== "undefined" && input["action"].length > 0)
+            if(input.action === "colorspectrum")
             {
-                if(input["action"] == "staticImage")
-                {
-                    
-                }
-                else
-                {
-                    content["content"] = "Action does not exist"
-                    content["status"] = 400
-                }
+                await canvasTools.generateColorSpectrum().then(result =>{
+                    content.content = result
+                }).catch(err=>{
+                    content.content = err
+                    content.status = 400
+                })
             }
             else
             {
-                content["content"] = "No action provided"
-                content["status"] = 400
+                content.content = "Action does not exist"
+                content.status = 400
             }
         }
         else
         {
-            content["content"] = "Cannot process request"
-            content["status"] = 400
+            content.content = "Cannot process request"
+            content.status = 400
         }
     }
     else
     {
-        content["content"] = "No request provided"
-        content["status"] = 400
+        content.content = "No request provided"
+        content.status = 400
     }
-    return content
+    return new Promise((resolve, reject) =>{
+        if(content.status === 200)
+        {
+            resolve(content)
+        }
+        else
+        {
+            reject(content)
+        }
+    })
 }
 
 module.exports = {
