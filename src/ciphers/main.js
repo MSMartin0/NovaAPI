@@ -1,7 +1,6 @@
  
 const fs = require('fs')
 const path = require('path')
-const { type } = require('os')
 const DependancyMap = new Map()
 const config = JSON.parse(fs.readFileSync(path.resolve(__dirname,'config.json')))
 const name = config.name
